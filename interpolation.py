@@ -49,7 +49,7 @@ def build_ngram_models(dataset):
     trigram_model = defaultdict(int)
     
     for document in dataset:
-        # This one is really slow.
+        # TODO: This one is really slow.
         # tokens = tokenize_with_wordpiece(document)
         tokens = tokenize_with_boundaries(document)
         
@@ -95,16 +95,11 @@ def calculate_probabilities(unigram_model, bigram_model, trigram_model, total_un
 
 # Function to perform interpolation
 def interpolate(trigram_prob, bigram_prob, unigram_prob, trigram, lambdas):
-    _, w2, w3 = trigram  # unpack trigram
+    _, w2, w3 = trigram  # unpack trigram, but ignore first word
     lambda3, lambda2, lambda1 = lambdas
     
-    # Trigram probability P(w3 | w1, w2)
     trigram_p = trigram_prob.get(trigram, 0)
-    
-    # Bigram probability P(w3 | w2)
     bigram_p = bigram_prob.get((w2, w3), 0)
-    
-    # Unigram probability P(w3)
     unigram_p = unigram_prob.get((w3,), 0)
     
     # Interpolated probability
@@ -185,7 +180,8 @@ def generate_text(trigram_model, bigram_model, unigram_model, lambdas, max_lengt
             break
         generated_sequence.append(next_word)
     
-    return ' '.join(generated_sequence[2:])  # Omit the starting boundary tokens
+    # Omit the starting boundary tokens
+    return ' '.join(generated_sequence[2:])  
 
 
 # Function to calculate the log probability of a sequence using the model
@@ -215,6 +211,7 @@ def calculate_perplexity(test_documents, trigram_prob, bigram_prob, unigram_prob
     for document in test_documents:
         # Tokenize the document
         tokens = tokenize_with_boundaries(document)
+        # TODO: Figure out a faster tokenization algorithm
         # tokens = tokenize_with_wordpiece(document)
         log_prob_sum, num_trigrams = log_probability_of_sequence(tokens, trigram_prob, bigram_prob, unigram_prob, lambdas, add_smoothing)
         
@@ -277,19 +274,8 @@ if __name__ == '__main__':
 
         i += 1
 
-    # trigram_model = create_trigram_model(samples)
-    # for t, c in trigram_model.items():
-    #     if c > 1:
-    #         print(t, c)
     lambdas = (0.7, 0.2, 0.1)  # weights for trigram, bigram, and unigram
     unigram_model, bigram_model, trigram_model, total_unigrams = build_ngram_models(train_samples)
-
-    # unigram_prob, bigram_prob, trigram_prob = calculate_probabilities(unigram_model, bigram_model, trigram_model, total_unigrams)
-
-    # lambdas = (0.7, 0.2, 0.1)  # weights for trigram, bigram, unigram (prioritize trigram)
-    # trigram = ("non-tested", "grades", "and")
-    # probability = interpolate(trigram_prob, bigram_prob, unigram_prob, trigram, lambdas)
-    # print(probability)
 
     # Generate text using the trigram model
     generated_text_1 = generate_text(trigram_model, bigram_model, unigram_model, lambdas)
@@ -300,17 +286,7 @@ if __name__ == '__main__':
     # Sample usage: Compute log-probabilities and interpolate
     unigram_log_prob, bigram_log_prob, trigram_log_prob = calculate_log_probabilities(unigram_model, bigram_model, trigram_model, total_unigrams)
 
-    # Example trigram to interpolate probability for: ("<s>", "<s>", "this")
-    # TODO: This might need to be optimized.
-    # trigram = ("a", "bb", "ccc")
-    # log_probability = log_interpolate(trigram_log_prob, bigram_log_prob, unigram_log_prob, trigram, lambdas)
-
-    # Convert back to probability if needed (though usually you'd stay in log-space)
-    # probability = math.exp(log_probability)
-    # print(f"Log-Interpolated probability for {trigram}: {log_probability}")
-    # print(f"Interpolated probability for {trigram}: {probability}")
-
-    # print(test_items)
+    # Uncomment to test
     # test_samples = [
     #     "the quick brown fox jumps over the lazy dog",
     #     "The blood of the covenant is thicker than the water of the womb",
