@@ -1,5 +1,5 @@
 # trigram_interpolation
-A machine exercise to test my ability to decode/encode sequences of text using simple n-gram models.
+A machine exercise to test capability to decode/encode sequences of text using simple n-gram models.
 
 # To Run
 
